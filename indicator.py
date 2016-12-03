@@ -5,7 +5,7 @@ class Indicator():
     def __init__(self):
         pass
 
-    def rsiFunc(self, prices, n=14):
+    def rsi_func(self, prices, n=14):
         deltas = np.diff(prices)
         seed = deltas[:n+1]
         up = seed[seed>=0].sum()/n
