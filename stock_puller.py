@@ -2,6 +2,7 @@ import urllib.request, urllib.error, urllib.parse
 import matplotlib.dates as mdates
 from yahoo_finance import Share
 import numpy as np
+import pdb
 
 class StockPuller():
 
@@ -21,23 +22,25 @@ class StockPuller():
                     if 'values' not in each_line:
                         data.append(each_line)
             # Update last day
-            share_today = Share(stock)
-            tm = share_today.get_trade_datetime().split()[0]
-            today_date = tm.replace("-","")
+            #share_today = Share(stock)
+            #tm = share_today.get_trade_datetime().split()[0]
+            #today_date = tm.replace("-","")
 
-            l_date = data[-1].split(',')[0]
-
-            if l_date != today_date:
+            #l_date = data[-1].split(',')[0]
+            '''
+            if today_date and l_date != today_date:
                 today_close_price = share_today.get_price()
                 today_high_price = share_today.get_days_high()
                 today_low_price = share_today.get_days_low()
                 today_open_price = share_today.get_open()
                 today_volume = share_today.get_volume()
                 last_row = today_date+','+ today_close_price+','+today_high_price+','+today_low_price +','+today_open_price+','+today_volume
-                self.data.append(last_row)
+                if today_close_price and today_high_price and today_open_price and today_volume:
+                    data.append(last_row) '''
 
             return data
 
         except Exception as e:
+            pdb.set_trace()
             print(str(e), 'failed to organize pulled data.')
 

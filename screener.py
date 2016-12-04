@@ -3,6 +3,7 @@ from stock_puller import StockPuller
 import numpy as np
 import matplotlib.dates as mdates
 import plot
+import pdb
 
 class Screener():
     def __init__(self, strategy, in_file):
@@ -25,10 +26,14 @@ class Screener():
             stock_list = stock_lines.split()
             for stock in stock_list:
                 stock_file = self.puller.pull_data(stock)
+
+                if not stock_file:
+                    continue
+
                 date, closep, highp, lowp, openp, volume = np.loadtxt(stock_file, delimiter=',', unpack=True,
                                                                   converters={ 0: self.bytes_update2num('%Y%m%d')})
                 rsi = self.indicator.rsi_func(closep)
-                if rsi[-1] > 50: # oversold
+                if rsi[-1] < 30: # oversold
                     plot_ticker = plot.PlotTicker()
                     plot_ticker.graph_data(stock, 12, 22)
 

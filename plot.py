@@ -30,6 +30,12 @@ class PlotTicker():
         try:
             stock_file = self.puller.pull_data(stock)
 
+            if stock == 'HEIA':
+                pdb.set_trace()
+
+            if not stock_file:
+                return None
+
             date, closep, highp, lowp, openp, volume = np.loadtxt(stock_file, delimiter=',', unpack=True,
                                                                   converters={ 0: self.bytes_update2num('%Y%m%d')})
             x = 0
