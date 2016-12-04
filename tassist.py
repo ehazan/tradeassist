@@ -1,5 +1,6 @@
 import argparse
 import scanner
+import screener
 import plot
 import pdb
 import sys
@@ -19,12 +20,16 @@ def check_arg(args=None):
              nargs=1,
              help='Creates scan list: -s [finviz_best_perf]')
 
+     parser.add_argument('-sn', '--screen',
+             nargs=2,
+             help='Creates scan list: -s [scan_type stock_list_file_name]')
+
      results = parser.parse_args(args)
 
-     return results.buy, results.plot, results.scan
+     return results.buy, results.plot, results.scan, results.screen
 
 def main():
-    buy_op, plot_op, scan_op = check_arg(sys.argv[1:])
+    buy_op, plot_op, scan_op, screen_op = check_arg(sys.argv[1:])
 
     if buy_op is not None:
         print('Not implemented')
@@ -35,6 +40,9 @@ def main():
     elif scan_op is not None:
        generator = scanner.ListGenerator()
        generator.run()
+    elif screen_op is not None:
+        scr = screener.Screener(screen_op[0], screen_op[1])
+        scr.screen()
     else:
         print('Please select required operation.')
 
