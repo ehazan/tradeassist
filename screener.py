@@ -32,8 +32,17 @@ class Screener():
 
                 date, closep, highp, lowp, openp, volume = np.loadtxt(stock_file, delimiter=',', unpack=True,
                                                                   converters={ 0: self.bytes_update2num('%Y%m%d')})
+                hh, _ = self.indicator.hh_ll(closep, 5)
+
+                vol_ma = self.indicator.moving_average(volume, 20)
+
                 rsi = self.indicator.rsi_func(closep)
-                if rsi[-1] < 30: # oversold
+                if  hh[-1] == closep[-1] and volume[-1] > vol_ma[-1]*2 and rsi[-1] > 80 : # overbought
                     plot_ticker = plot.PlotTicker()
                     plot_ticker.graph_data(stock, 12, 22)
+
+if __name__ == '__main__':
+    file_name = input("Enter file name: ")
+    screener = Screener("stam", file_name)
+    screener.screen()
 

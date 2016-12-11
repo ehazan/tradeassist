@@ -19,7 +19,7 @@ class StockPuller():
             split_source = source_code.split('\n')
             for each_line in split_source:
                 split_line = each_line.split(',')
-                if len(split_line)==6:
+                if len(split_line)==6 and split_line[0].isnumeric():
                     if 'values' not in each_line:
                         data.append(each_line)
 
@@ -28,24 +28,28 @@ class StockPuller():
 
             # Update last day
             share_today = Share(stock)
-            tm = share_today.get_trade_datetime().split()[0]
-            today_date = tm.replace("-","")
+            
+            if share_today:
+                tm = share_today.get_trade_datetime().split()[0]
+                today_date = tm.replace("-","")
 
-            l_date = data[-1].split(',')[0]
+                l_date = data[-1].split(',')[0]
 
-            if data and l_date != today_date:
-                today_close_price = share_today.get_price()
-                today_high_price = share_today.get_days_high()
-                today_low_price = share_today.get_days_low()
-                today_open_price = share_today.get_open()
-                today_volume = share_today.get_volume()
-                last_row = today_date+','+ today_close_price+',' \
-                           +today_high_price+','+today_low_price +',' \
-                           +today_open_price+','+today_volume
+                if data and l_date < today_date:
+                    today_close_price = share_today.get_price()
+                    today_high_price = share_today.get_days_high()
+                    today_low_price = share_today.get_days_low()
+                    today_open_price = share_today.get_open()
+                    today_volume = share_today.get_volume()
 
-                if today_close_price and today_high_price and \
-                    today_open_price and today_volume:
-                    data.append(last_row)
+                    if today_close_price != None and today_high_price != None and \
+                       today_open_price != None and today_volume != None:
+
+                       last_row = today_date+','+ today_close_price+',' \
+                               +today_high_price+','+today_low_price +',' \
+                               +today_open_price+','+today_volume
+
+                       data.append(last_row)
 
             return data
 

@@ -5,6 +5,25 @@ class Indicator():
     def __init__(self):
         pass
 
+    def hh_ll(self, closep, tf):
+        hh = []
+        ll = []
+        x = tf
+
+        while x <= len(closep):
+            cons_high = closep[x-tf:x]
+            cons_low = closep[x-tf:x]
+
+            highest_high = max(cons_high)
+            lowest_low = min(cons_low)
+
+            hh.append(highest_high)
+            ll.append(lowest_low)
+            
+            x+=1
+
+        return hh, ll
+
     def rsi_func(self, prices, n=14):
         deltas = np.diff(prices)
         seed = deltas[:n+1]

@@ -30,9 +30,6 @@ class PlotTicker():
         try:
             stock_file = self.puller.pull_data(stock)
 
-            if stock == 'HEIA':
-                pdb.set_trace()
-
             if not stock_file:
                 return None
 
@@ -51,6 +48,8 @@ class PlotTicker():
 
             SP = len(date[MA2-1:])
 
+            # test higest high
+            hh, ll = self.indicator.hh_ll(closep, 5)
 
             fig = plt.figure(figsize=(20,10), facecolor='#565353')
 
@@ -147,3 +146,11 @@ class PlotTicker():
 
         except Exception as e:
             print('main loop',str(e))
+
+
+if __name__ == '__main__':
+    ticker = input("Enter a ticker :")
+    plot_ticker = PlotTicker()
+    plot_ticker.graph_data(ticker, 12, 20) 
+
+

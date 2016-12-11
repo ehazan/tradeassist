@@ -56,11 +56,11 @@ class MarketState():
            closep_mdy > mdy_50_sma and closep_qqq > qqq_50_sma and \
            closep_iwm > iwm_50_sma:
            self.market_condition = 'uptrend'
-        elif closep_iwm < iwm_10_ema and closep_spy < spy_50_sma and \
+        elif closep_iwm < iwm_10_ema and closep_iwm < spy_50_sma and \
              closep_mdy < mdy_10_ema and closep_mdy < mdy_50_sma and \
              closep_qqq < qqq_10_ema and closep_qqq < qqq_50_sma and \
              closep_spy < spy_10_ema and closep_spy < spy_50_sma:
-             self.market_condition = 'uptrend'
+             self.market_condition = 'downtrend'
         else:
             self.market_condition = 'sideways'
 
