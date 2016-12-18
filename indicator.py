@@ -53,7 +53,7 @@ class Indicator():
 
     def moving_average(self, values, window):
         weigths = np.repeat(1.0, window)/window
-        smas = np.convolve(values, weigths, 'valid')
+        smas = np.convolve(values, weigths, 'full')[:len(values)]
         return smas # as a numpy array
 
 
@@ -64,12 +64,10 @@ class Indicator():
         a[:window] = a[window]
         return a
 
-    def computeMACD(self, x, slow=26, fast=12):
-        """
-        compute the MACD (Moving Average Convergence/Divergence) using a fast and slow exponential moving avg'
-        return value is emaslow, emafast, macd which are len(x) arrays
-        """
-        emaslow = self.exp_moving_average(x, slow)
-        emafast = self.exp_moving_average(x, fast)
-        return emaslow, emafast, emafast - emaslow
+    # Modidied macd working with sma 
+    def compute_macd(self, x, slow=26, fast=12):
+        ema_slow = self.moving_average(x, slow)
+        ema_fast = self.moving_average(x, fast)
+
+        return ema_slow, ema_fast, ema_fast - ema_slow
 

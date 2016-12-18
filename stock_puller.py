@@ -8,22 +8,29 @@ class StockPuller():
     def __init_(self):
         pass
 
-    def pull_data(self, stock):
+    def pull_data(self, stock, date_range):
         print('Currently Pulling',stock)
         url_to_visit = 'http://chartapi.finance.yahoo.com/instrument/1.0/' \
-                        +stock+'/chartdata;type=quote;range=1y/csv'
+                        +stock+'/chartdata;type=quote;range='+date_range+'/csv'
 
         try:
             data = []
             source_code = urllib.request.urlopen(url_to_visit).read().decode()
             split_source = source_code.split('\n')
+            
+            # Search for data reading errors
+            for word in split_source:
+                if 'errorid' in word:
+                    print("Error reading data for :", stock)
+                    return None
+
             for each_line in split_source:
                 split_line = each_line.split(',')
                 if len(split_line)==6 and split_line[0].isnumeric():
                     if 'values' not in each_line:
                         data.append(each_line)
 
-            if not data:
+            if data is None:
                 return None
 
             # Update last day

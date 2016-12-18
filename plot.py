@@ -26,9 +26,9 @@ class PlotTicker():
             return strconverter(s)
         return bytesconverter
 
-    def graph_data(self, stock, MA1, MA2):
+    def graph_data(self, stock, MA1, MA2, date_range='1y'):
         try:
-            stock_file = self.puller.pull_data(stock)
+            stock_file = self.puller.pull_data(stock, date_range)
 
             if not stock_file:
                 return None
@@ -43,21 +43,18 @@ class PlotTicker():
                 new_ar.append(append_line)
                 x+=1
 
-            av1 = self.indicator.moving_average(closep, MA1)
-            av2 = self.indicator.moving_average(closep, MA2)
+            av1 = self.indicator.exp_moving_average(closep, MA1)
+            av2 = self.indicator.exp_moving_average(closep, MA2)
 
             SP = len(date[MA2-1:])
 
-            # test higest high
-            hh, ll = self.indicator.hh_ll(closep, 5)
-
             fig = plt.figure(figsize=(20,10), facecolor='#565353')
 
-            ax1 = plt.subplot2grid((6,4), (0,0), rowspan=4, colspan=4, axisbg='#565353')
+            ax1 = plt.subplot2grid((6,4), (1,0), rowspan=4, colspan=4, axisbg='#565353')
             candlestick_ohlc(ax1, new_ar[-SP:], width=.6, colorup='#53c156', colordown='#ff1717')
 
-            Label1 = str(MA1)+' SMA'
-            Label2 = str(MA2)+' SMA'
+            Label1 = str(MA1)+' EMA'
+            Label2 = str(MA2)+' EMA'
 
             ax1.plot(date[-SP:],av1[-SP:],'#e1edf9',label=Label1, linewidth=1.5)
             ax1.plot(date[-SP:],av2[-SP:],'#4ee6fd',label=Label2, linewidth=1.5)
@@ -82,59 +79,73 @@ class PlotTicker():
             pylab.setp(textEd[0:5], color = 'w')
 
             fig = pylab.gcf()
-            fig.canvas.set_window_title(stock)
+            fig.canvas.set_window_title(stock + \
+                ' Daily scale' if date_range == '1y' else stock + ' Weekly Scale')
 
             volumeMin = 0
 
-            ax2 = plt.subplot2grid((6,4), (4,0), sharex=ax1, rowspan=1, colspan=4, axisbg='#565353')
-            ax2.plot(date[-SP:], volume[-SP:], '#00ffe8', linewidth=.8)
-            ax2.fill_between(date[-SP:], volumeMin, volume[-SP:], facecolor='#00ffe8', alpha=.5)
-            ax2.axes.yaxis.set_ticks([])
-            ax2.grid(True)
+            ax0 = plt.subplot2grid((6,4), (0,0), sharex=ax1, rowspan=1, colspan=4, axisbg='#565353')
+            rsi = self.indicator.rsi_func(closep)
+            rsiCol = '#c1f9f7'
+            posCol = '#386d13'
+            negCol = '#8f2020'
+
+            ax0.plot(date[-SP:], rsi[-SP:], rsiCol, linewidth=1.5)
+            ax0.axhline(70, color=negCol)
+            ax0.axhline(30, color=posCol)
+            ax0.fill_between(date[-SP:], rsi[-SP:], 70, where=(rsi[-SP:]>=70), facecolor=negCol, edgecolor=negCol, alpha=0.5)
+            ax0.fill_between(date[-SP:], rsi[-SP:], 30, where=(rsi[-SP:]<=30), facecolor=posCol, edgecolor=posCol, alpha=0.5)
+            ax0.set_yticks([30,70])
+            ax0.yaxis.label.set_color("w")
+            ax0.spines['bottom'].set_color("#5998ff")
+            ax0.spines['top'].set_color("#5998ff")
+            ax0.spines['left'].set_color("#5998ff")
+            ax0.spines['right'].set_color("#5998ff")
+            ax0.tick_params(axis='y', colors='w')
+            ax0.tick_params(axis='x', colors='w')
+            plt.ylabel('RSI')
+
+            ax1v = ax1.twinx()
+            ax1v.fill_between(date[-SP:],volumeMin, volume[-SP:], facecolor='#00ffe8', alpha=.4)
+            ax1v.axes.yaxis.set_ticklabels([])
+            ax1v.grid(False)
+            ###Edit this to 3, so it's a bit larger
+            ax1v.set_ylim(0, 3*volume.max())
+            ax1v.spines['bottom'].set_color("#5998ff")
+            ax1v.spines['top'].set_color("#5998ff")
+            ax1v.spines['left'].set_color("#5998ff")
+            ax1v.spines['right'].set_color("#5998ff")
+            ax1v.tick_params(axis='x', colors='w')
+            ax1v.tick_params(axis='y', colors='w')
+            ax2 = plt.subplot2grid((6,4), (5,0), sharex=ax1, rowspan=1, colspan=4, axisbg='#565353')
+            fillcolor = '#00ffe8'
+            nslow = 26
+            nfast = 12
+            nema = 16
+
+            maslow, mafast, macd = self.indicator.compute_macd(closep)
+
+            ma16 = self.indicator.moving_average(macd, nema)
+
+            ax2.plot(date[-SP:], macd[-SP:], color='#4ee6fd', lw=2)
+            ax2.plot(date[-SP:], ma16[-SP:], color='#e1edf9', lw=1)
+            #ax2.fill_between(date[-SP:], macd[-SP:]-ema9[-SP:], 0, alpha=0.5, facecolor=fillcolor, edgecolor=fillcolor)
+
+            plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
             ax2.spines['bottom'].set_color("#5998ff")
             ax2.spines['top'].set_color("#5998ff")
             ax2.spines['left'].set_color("#5998ff")
             ax2.spines['right'].set_color("#5998ff")
             ax2.tick_params(axis='x', colors='w')
             ax2.tick_params(axis='y', colors='w')
-
-            plt.ylabel('Volume', color='w')
-
-            ax3 = plt.subplot2grid((6,4), (5,0), sharex=ax1, rowspan=1, colspan=4, axisbg='#565353')
-            rsi = self.indicator.rsi_func(closep)
-            rsi_col = '#c1f9f7'
-            pos_col = '#386d13'
-            neg_col = '#8f2020'
-
-            ax3.plot(date[-SP:], rsi[-SP:], rsi_col, linewidth=1.5)
-            ax3.axhline(70, color=neg_col)
-            ax3.axhline(30, color=pos_col)
-            ax3.fill_between(date[-SP:], rsi[-SP:], 70, where=(rsi[-SP:]>=70), facecolor=neg_col, edgecolor=neg_col, alpha=0.5)
-            ax3.fill_between(date[-SP:], rsi[-SP:], 30, where=(rsi[-SP:]<=30), facecolor=pos_col, edgecolor=pos_col, alpha=0.5)
-            ax3.set_yticks([30,70])
-
-            plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
-            ax3.spines['bottom'].set_color("#5998ff")
-            ax3.spines['top'].set_color("#5998ff")
-            ax3.spines['left'].set_color("#5998ff")
-            ax3.spines['right'].set_color("#5998ff")
-            ax3.tick_params(axis='x', colors='w')
-            ax3.tick_params(axis='y', colors='w')
-            plt.ylabel('RSI', color='w')
-            ax3.yaxis.set_major_locator(mticker.MaxNLocator(nbins=5, prune='upper'))
-
-            for label in ax3.xaxis.get_ticklabels():
+            plt.ylabel('MACD', color='w')
+            ax2.yaxis.set_major_locator(mticker.MaxNLocator(nbins=5, prune='upper'))
+            for label in ax2.xaxis.get_ticklabels():
                 label.set_rotation(45)
 
             plt.suptitle(stock.upper(),color='w')
+            plt.setp(ax0.get_xticklabels(), visible=False)
             plt.setp(ax1.get_xticklabels(), visible=False)
-            plt.setp(ax2.get_xticklabels(), visible=False)
-
-
-            plt.suptitle(stock.upper(),color='w')
-            plt.setp(ax1.get_xticklabels(), visible=False)
-            plt.setp(ax2.get_xticklabels(), visible=False)
-
             bbox_props = dict(boxstyle='round',fc='w', ec='k',lw=1)
             ax1.annotate(str(closep[-1]), (date[-1], closep[-1]),
             xytext = (date[-1]+4, closep[-1]), bbox=bbox_props)
@@ -142,7 +153,6 @@ class PlotTicker():
             plt.subplots_adjust(left=.04, bottom=.10, right=.96, top=.95, wspace=.20, hspace=0)
 
             plt.show()
-            fig.savefig('example.png',facecolor=fig.get_facecolor())
 
         except Exception as e:
             print('main loop',str(e))
@@ -151,6 +161,6 @@ class PlotTicker():
 if __name__ == '__main__':
     ticker = input("Enter a ticker :")
     plot_ticker = PlotTicker()
-    plot_ticker.graph_data(ticker, 12, 20) 
+    plot_ticker.graph_data(ticker, 10, 20)
 
 

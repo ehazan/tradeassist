@@ -33,7 +33,8 @@ class Screener():
     def eyeball(self):
         for stock in self.stock_list:
             plot_ticker = plot.PlotTicker()
-            plot_ticker.graph_data(stock, 12, 22)
+            plot_ticker.graph_data(stock, 10, 50, '5y')
+            plot_ticker.graph_data(stock, 10, 20, '1y')
 
 
     def screen(self):
